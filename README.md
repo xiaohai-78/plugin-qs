@@ -1,0 +1,2 @@
+# plugin-qs
+CodeQualityReport
