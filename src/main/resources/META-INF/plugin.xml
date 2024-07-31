@@ -26,7 +26,11 @@
     <!-- Extension points defined by the plugin.
          Read more: https://plugins.jetbrains.com/docs/intellij/plugin-extension-points.html -->
     <extensions defaultExtensionNs="com.intellij">
-
+        <!-- Register the settings page under Tools -->
+        <applicationConfigurable instance="com.xiaohai.plugintest.ReportConfigurable"
+                                 displayName="Report Settings"
+                                 id="reportSettings"
+                                 groupId="tools" />
     </extensions>
     <actions>
         <action id="hello" class="com.xiaohai.plugintest.HelloAction" text="Hello" description="test">
