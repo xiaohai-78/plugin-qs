@@ -11,9 +11,23 @@ import difflib.Delta;
 import difflib.DiffUtils;
 import org.jetbrains.annotations.NotNull;
 
+import javax.mail.Message;
+import javax.mail.MessagingException;
+import javax.mail.PasswordAuthentication;
+import javax.mail.Session;
+import javax.mail.Transport;
+import javax.mail.internet.AddressException;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeMessage;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Properties;
 
 public class CodeQualityReportClass extends AnAction {
 
@@ -52,6 +66,8 @@ public class CodeQualityReportClass extends AnAction {
                     String changes = calculateDifferences(oldContent, newContent);
 
                     System.out.println("Changes:\n" + changes);
+                    // 发送 POST 请求
+                    sendLLMRequest(filePath, changes);
                 }
             }
         }
@@ -80,6 +96,81 @@ public class CodeQualityReportClass extends AnAction {
         return diffOutput.toString();
     }
 
+    private void sendLLMRequest(String filePath, String changes) {
+        try {
+            // 设置请求的 URL
+            URL url = new URL("https://xiaohai.com/api/endpoint");
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("POST");
+            conn.setRequestProperty("Content-Type", "application/json");
+            conn.setDoOutput(true);
 
+            // 构建 JSON 请求体
+            String jsonInputString = "{\"filePath\": \"" + filePath + "\", \"changes\": \"" + changes + "\"}";
+
+            // 发送请求体
+            try (OutputStream os = conn.getOutputStream()) {
+                byte[] input = jsonInputString.getBytes("utf-8");
+                os.write(input, 0, input.length);
+            }
+
+            // 读取响应
+            try (BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream(), "utf-8"))) {
+                StringBuilder response = new StringBuilder();
+                String responseLine;
+                while ((responseLine = br.readLine()) != null) {
+                    response.append(responseLine.trim());
+                }
+                System.out.println("Response from server: " + response.toString());
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    public static void sendEmail(String toEmail, String subject, String body) {
+        // 发件人的电子邮件地址和密码
+        final String fromEmail = "your-email@example.com"; // 替换为您的电子邮件地址
+        final String password = "your-email-password"; // 替换为您的电子邮件密码
+
+        // 设置邮件服务器的属性
+        Properties props = new Properties();
+        props.put("mail.smtp.host", "smtp.example.com"); // SMTP 服务器地址，例如 smtp.gmail.com
+        props.put("mail.smtp.port", "587"); // SMTP 服务器端口
+        props.put("mail.smtp.auth", "true");
+        props.put("mail.smtp.starttls.enable", "true"); // 启用 STARTTLS
+
+        // 创建一个会话对象并传递身份验证信息
+        Session session = Session.getInstance(props, new javax.mail.Authenticator() {
+            protected PasswordAuthentication getPasswordAuthentication() {
+                return new PasswordAuthentication(fromEmail, password);
+            }
+        });
+
+        try {
+            // 创建邮件消息对象
+            Message message = new MimeMessage(session);
+
+            // 设置发件人
+            message.setFrom(new InternetAddress(fromEmail));
+
+            // 设置收件人
+            message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(toEmail));
+
+            // 设置邮件主题
+            message.setSubject(subject);
+
+            // 设置邮件内容
+            message.setText(body);
+
+            // 发送邮件
+            Transport.send(message);
+
+            System.out.println("Email sent successfully.");
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 }
 

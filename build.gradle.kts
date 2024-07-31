@@ -50,5 +50,6 @@ tasks {
 
 dependencies {
     implementation("com.googlecode.java-diff-utils:diffutils:1.3.0")
+    implementation("com.sun.mail:javax.mail:1.6.2")
 }
 
