@@ -10,27 +10,33 @@ import com.intellij.openapi.vcs.changes.ChangeListManager;
 import com.intellij.openapi.vcs.changes.ContentRevision;
 import difflib.Delta;
 import difflib.DiffUtils;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
+import okhttp3.ResponseBody;
 import org.jetbrains.annotations.NotNull;
 
 import javax.mail.Message;
-import javax.mail.MessagingException;
 import javax.mail.PasswordAuthentication;
 import javax.mail.Session;
 import javax.mail.Transport;
-import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.TimeUnit;
 
 public class CodeQualityReportClass extends AnAction {
+
+    private static final String requestUrl = "";
+    private static final String apiKey = "your-api-key";
+
 
     @Override
     public void actionPerformed(@NotNull AnActionEvent e) {
@@ -68,6 +74,7 @@ public class CodeQualityReportClass extends AnAction {
 
                     System.out.println("Changes:\n" + changes);
                     // 发送 POST 请求
+                    String answ = sendLLMRequest("abc", filePath, changes);
                 }
             }
         }
@@ -96,51 +103,66 @@ public class CodeQualityReportClass extends AnAction {
         return diffOutput.toString();
     }
 
-    private void sendLLMRequest(String user, String filePath, String changes) {
+    private String sendLLMRequest(String user, String filePath, String changes) {
+        JSONObject jsonObject = new JSONObject();
+
+        String userName = user;
+        // 添加inputs键，其值为一个空的JSONObject
+        jsonObject.put("inputs", new JSONObject());
+
+        // 添加query键
+        jsonObject.put("query", "文件名称：" + filePath + "\n" + "改动内容：" + changes);
+
+        // 添加response_mode键
+        jsonObject.put("response_mode", "blocking");
+
+        // 添加conversation_id键，其值为一个空字符串
+        jsonObject.put("conversation_id", "");
+
+        // 添加user键
+        if (user == null) {
+            userName = "abc-123";
+        }
+        jsonObject.put("user", userName);
+
+        Map<String, String> headers = new HashMap<>();
+        headers.put("Authorization", "Bearer " + apiKey);
+        headers.put("Content-Type", "application/json");
+
+        RequestBody body = RequestBody.create(
+                okhttp3.MediaType.parse("application/json; charset=utf-8"),
+                jsonObject.toString());
+
+        OkHttpClient.Builder clientBuilder = new OkHttpClient.Builder();
+        // 设置连接超时时间为60秒
+        clientBuilder.connectTimeout(60, TimeUnit.SECONDS);
+        // 设置读取超时时间为60秒
+        clientBuilder.readTimeout(60, TimeUnit.SECONDS);
+        // 设置写入超时时间为60秒
+        clientBuilder.writeTimeout(60, TimeUnit.SECONDS);
+
+        // 使用Builder创建OkHttpClient实例
+        OkHttpClient client = clientBuilder.build();
+
+        Request request = new Request.Builder()
+                .url(requestUrl)
+                .header("Authorization", "Bearer " + apiKey)
+                .header("Content-Type", "application/json")
+                .post(body)
+                .build();
         try {
-            // 设置请求的 URL
-            URL url = new URL("http://dify.xxx.com.cn/v1/chat-messages");
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            conn.setRequestMethod("POST");
-            conn.setRequestProperty("Authorization", "Bearer {api_key}"); // 替换 {api_key} 为实际的 API 密钥
-            conn.setRequestProperty("Content-Type", "application/json");
-            conn.setDoOutput(true);
-
-            // 构建 JSON 请求体
-            String jsonInputString = """
-        {
-            "inputs": {},
-            "query": "changes filePath: %s . changes code: [ %s ]",
-            "response_mode": "blocking",
-            "conversation_id": "",
-            "user": "%s"
+            Response response = client.newCall(request).execute();
+            ResponseBody body1 = response.body();
+            System.out.println(body1);
+            return body1.toString();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-        """.formatted(filePath, changes, user);
 
-            // 发送请求体
-            try (OutputStream os = conn.getOutputStream()) {
-                byte[] input = jsonInputString.getBytes("utf-8");
-                os.write(input, 0, input.length);
-            }
-
-            // 读取响应
-            try (BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream(), "utf-8"))) {
-                StringBuilder response = new StringBuilder();
-                String responseLine;
-                while ((responseLine = br.readLine()) != null) {
-                    response.append(responseLine.trim());
-                }
-
-                // 解析响应 JSON，提取 answer 字段
-                JSONObject jsonResponse = new JSONObject(response.toString());
-                String answer = jsonResponse.getStr("answer", "No answer provided");
-
-                System.out.println("Response from server: " + answer);
-            }
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
+        return "无";
     }
+
+
 
 
     public static void sendEmail(String toEmail, String subject, String body) {
