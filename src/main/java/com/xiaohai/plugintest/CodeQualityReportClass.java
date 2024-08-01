@@ -1,5 +1,6 @@
 package com.xiaohai.plugintest;
 
+import cn.hutool.json.JSONObject;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.Project;
@@ -67,7 +68,6 @@ public class CodeQualityReportClass extends AnAction {
 
                     System.out.println("Changes:\n" + changes);
                     // 发送 POST 请求
-                    sendLLMRequest(filePath, changes);
                 }
             }
         }
@@ -96,17 +96,26 @@ public class CodeQualityReportClass extends AnAction {
         return diffOutput.toString();
     }
 
-    private void sendLLMRequest(String filePath, String changes) {
+    private void sendLLMRequest(String user, String filePath, String changes) {
         try {
             // 设置请求的 URL
-            URL url = new URL("https://xiaohai.com/api/endpoint");
+            URL url = new URL("http://dify.xxx.com.cn/v1/chat-messages");
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("POST");
+            conn.setRequestProperty("Authorization", "Bearer {api_key}"); // 替换 {api_key} 为实际的 API 密钥
             conn.setRequestProperty("Content-Type", "application/json");
             conn.setDoOutput(true);
 
             // 构建 JSON 请求体
-            String jsonInputString = "{\"filePath\": \"" + filePath + "\", \"changes\": \"" + changes + "\"}";
+            String jsonInputString = """
+        {
+            "inputs": {},
+            "query": "changes filePath: %s . changes code: [ %s ]",
+            "response_mode": "blocking",
+            "conversation_id": "",
+            "user": "%s"
+        }
+        """.formatted(filePath, changes, user);
 
             // 发送请求体
             try (OutputStream os = conn.getOutputStream()) {
@@ -121,12 +130,18 @@ public class CodeQualityReportClass extends AnAction {
                 while ((responseLine = br.readLine()) != null) {
                     response.append(responseLine.trim());
                 }
-                System.out.println("Response from server: " + response.toString());
+
+                // 解析响应 JSON，提取 answer 字段
+                JSONObject jsonResponse = new JSONObject(response.toString());
+                String answer = jsonResponse.getStr("answer", "No answer provided");
+
+                System.out.println("Response from server: " + answer);
             }
         } catch (Exception ex) {
             ex.printStackTrace();
         }
     }
+
 
     public static void sendEmail(String toEmail, String subject, String body) {
         // 发件人的电子邮件地址和密码

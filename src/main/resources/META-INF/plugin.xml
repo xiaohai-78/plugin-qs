@@ -33,9 +33,6 @@
                                  groupId="tools" />
     </extensions>
     <actions>
-        <action id="hello" class="com.xiaohai.plugintest.HelloAction" text="Hello" description="test">
-            <add-to-group group-id="ToolsMenu" anchor="first"/>
-        </action>
         <action id="CodeQualityReport" class="com.xiaohai.plugintest.CodeQualityReportClass" text="CodeQualityReport"
                 description="CodeQualityReport">
             <add-to-group group-id="Vcs.MessageActionGroup" anchor="first"/>
