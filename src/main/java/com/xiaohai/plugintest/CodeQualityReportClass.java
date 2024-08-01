@@ -152,14 +152,20 @@ public class CodeQualityReportClass extends AnAction {
                 .build();
         try {
             Response response = client.newCall(request).execute();
-            ResponseBody body1 = response.body();
-            System.out.println(body1);
-            return body1.toString();
+            ResponseBody responseBody = response.body();
+
+            if (responseBody != null) {
+                String responseBodyString = responseBody.string();
+                System.out.println(responseBodyString);
+                return responseBodyString;
+            } else {
+                System.out.println("Response body is null");
+                return "Response body is null";
+            }
         } catch (IOException e) {
             e.printStackTrace();
+            return "Response body is null";
         }
-
-        return "无";
     }
 
 
