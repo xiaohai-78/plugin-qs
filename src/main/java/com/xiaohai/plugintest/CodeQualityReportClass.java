@@ -20,13 +20,13 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
 import org.jetbrains.annotations.NotNull;
-
-import javax.mail.Message;
-import javax.mail.PasswordAuthentication;
-import javax.mail.Session;
-import javax.mail.Transport;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeMessage;
+//
+//import javax.mail.Message;
+//import javax.mail.PasswordAuthentication;
+//import javax.mail.Session;
+//import javax.mail.Transport;
+//import javax.mail.internet.InternetAddress;
+//import javax.mail.internet.MimeMessage;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
@@ -49,13 +49,18 @@ public class CodeQualityReportClass extends AnAction {
     private static final String appPassword = "**"; // 替换为您的应用密码或授权码
     private static final String fromEmail = "xiao**@163.com";
 
+    // 无参数的公共构造函数
+    public CodeQualityReportClass() {
+        super();
+    }
+
     @Override
     public void actionPerformed(@NotNull AnActionEvent e) {
         Project project = e.getProject();
         if (project == null) return;
 
         // 检查是否配置了邮箱
-        if (!checkEmailConfig()) return;
+//        if (!checkEmailConfig()) return;
 
         // 获取选中的改动文件
         Collection<Change> allChanges = ChangeListManager.getInstance(project).getAllChanges();
@@ -75,7 +80,7 @@ public class CodeQualityReportClass extends AnAction {
                     System.out.println("Processing completed successfully.");
                     Notifications.Bus.notify(new Notification(
                             Notifications.SYSTEM_MESSAGES_GROUP_ID,
-                            "Code quality report",
+                            "Code Quality Report",
                             "报告已生成，请查看您的邮箱！",
                             NotificationType.INFORMATION
                     ), project);
@@ -85,7 +90,7 @@ public class CodeQualityReportClass extends AnAction {
                     System.err.println("An error occurred while processing changes: " + ex.getMessage());
                     Notifications.Bus.notify(new Notification(
                             Notifications.SYSTEM_MESSAGES_GROUP_ID,
-                            "Code quality report 执行失败",
+                            "Code Quality Report 执行失败",
                             ex.getMessage(),
                             NotificationType.WARNING
                     ), project);
@@ -130,7 +135,7 @@ public class CodeQualityReportClass extends AnAction {
             }
         }
         System.out.println(emailContent);
-        sendEmail(generateSubject(), emailContent.toString());
+//        sendEmail(generateSubject(), emailContent.toString());
     }
 
     public static void sendEmail(String subject, String body) {
@@ -140,13 +145,13 @@ public class CodeQualityReportClass extends AnAction {
         if (toEmail.isEmpty()) {
             Notifications.Bus.notify(new Notification(
                     Notifications.SYSTEM_MESSAGES_GROUP_ID,
-                    "Code quality report 执行失败",
+                    "Code Quality Report 执行失败",
                     "您没有配置接收报告的邮箱，请在Setting -> Tools -> Code Quality Report, 中设置您的邮箱地址。",
                     NotificationType.WARNING
             ));
             return;
         }
-        send163Email(toEmail, subject, body);
+//        send163Email(toEmail, subject, body);
     }
 
     public static String generateSubject() {
@@ -253,8 +258,9 @@ public class CodeQualityReportClass extends AnAction {
 
             if (responseBody != null) {
                 String responseBodyString = responseBody.string();
-                System.out.println(responseBodyString);
-                return responseBodyString;
+                JSONObject responseJson = new JSONObject(responseBodyString);
+                System.out.println(responseJson);
+                return responseJson.getStr("answer");
             } else {
                 System.out.println("LLMResponse body is null");
                 return "LLMResponse body is null";
@@ -265,6 +271,7 @@ public class CodeQualityReportClass extends AnAction {
         }
     }
 
+    /**
     public static void send163Email(String toEmail, String subject, String body) {
 
         // 设置邮件服务器的属性
@@ -310,6 +317,6 @@ public class CodeQualityReportClass extends AnAction {
         }
     }
 
-
+**/
 }
 

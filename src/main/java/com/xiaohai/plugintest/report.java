@@ -1,6 +1,6 @@
 package com.xiaohai.plugintest;
 
-import javax.swing.*;
+import javax.swing.JTextField;
 
 /**
  * @Description:

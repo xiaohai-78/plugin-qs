@@ -20,6 +20,8 @@ intellij {
     version.set("2022.2.5")
     type.set("IC") // Target IDE Platform
     plugins.set(listOf("java"))
+    // URL schemes if needed
+//    args.urlSchemes = ["http", "https"]
 }
 
 tasks {
@@ -50,8 +52,13 @@ tasks {
 
 dependencies {
     implementation("com.googlecode.java-diff-utils:diffutils:1.3.0")
-    implementation("com.sun.mail:javax.mail:1.6.2")
+//    implementation("com.sun.mail:javax.mail:1.6.2")
     implementation("cn.hutool:hutool-all:5.8.0")
     implementation("com.squareup.okhttp3:okhttp:4.10.0")
 }
 
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(17))
+    }
+}

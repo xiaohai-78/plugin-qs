@@ -5,4 +5,4 @@ pluginManagement {
     }
 }
 
-rootProject.name = "plugin-test"
+rootProject.name = "CodeQualityReport"
