@@ -60,10 +60,28 @@ public class CodeQualityReportClass extends AnAction {
 
         // 获取选中的改动文件并异步处理
         CompletableFuture.runAsync(() -> processAllChangesAsync(allChanges))
+                .thenRun(() -> {
+                    // 处理完成后的逻辑，例如通知用户任务已完成
+                    System.out.println("Processing completed successfully.");
+                    Notifications.Bus.notify(new Notification(
+                            Notifications.SYSTEM_MESSAGES_GROUP_ID,
+                            "Code quality report",
+                            "报告已生成，请查看您的邮箱！",
+                            NotificationType.INFORMATION
+                    ), project);
+                })
                 .exceptionally(ex -> {
-                    ex.printStackTrace();
+                    // 处理异常情况，例如记录日志或通知用户
+                    System.err.println("An error occurred while processing changes: " + ex.getMessage());
+                    Notifications.Bus.notify(new Notification(
+                            Notifications.SYSTEM_MESSAGES_GROUP_ID,
+                            "Code quality report 执行失败",
+                            ex.getMessage(),
+                            NotificationType.WARNING
+                    ), project);
                     return null;
                 });
+
 
         // 获取选中的改动文件并异步处理
 //        processAllChangesAsync(allChanges);
