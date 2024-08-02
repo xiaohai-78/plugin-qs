@@ -12,7 +12,7 @@ public class ReportConfigurable implements Configurable {
     private JPanel myPanel;
     private JTextField emailField;
 
-    private static final String EMAIL_KEY = "report.email";
+    public static final String EMAIL_KEY = "report.email";
 
     @Nls(capitalization = Nls.Capitalization.Title)
     @Override

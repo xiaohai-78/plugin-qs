@@ -1,6 +1,7 @@
 package com.xiaohai.plugintest;
 
 import cn.hutool.json.JSONObject;
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
@@ -27,14 +28,18 @@ import javax.mail.Transport;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+
+import static com.xiaohai.plugintest.ReportConfigurable.EMAIL_KEY;
 
 public class CodeQualityReportClass extends AnAction {
 
@@ -48,6 +53,9 @@ public class CodeQualityReportClass extends AnAction {
     public void actionPerformed(@NotNull AnActionEvent e) {
         Project project = e.getProject();
         if (project == null) return;
+
+        // 检查是否配置了邮箱
+        if (!checkEmailConfig()) return;
 
         // 获取选中的改动文件
         Collection<Change> allChanges = ChangeListManager.getInstance(project).getAllChanges();
@@ -83,10 +91,6 @@ public class CodeQualityReportClass extends AnAction {
                     ), project);
                     return null;
                 });
-
-
-        // 获取选中的改动文件并异步处理
-//        processAllChangesAsync(allChanges);
     }
 
     private void processAllChangesAsync(Collection<Change> allChanges) {
@@ -126,6 +130,51 @@ public class CodeQualityReportClass extends AnAction {
             }
         }
         System.out.println(emailContent);
+        sendEmail(generateSubject(), emailContent.toString());
+    }
+
+    public static void sendEmail(String subject, String body) {
+        // 从配置中获取收件人邮箱地址
+        PropertiesComponent properties = PropertiesComponent.getInstance();
+        String toEmail = properties.getValue(EMAIL_KEY, "");
+        if (toEmail.isEmpty()) {
+            Notifications.Bus.notify(new Notification(
+                    Notifications.SYSTEM_MESSAGES_GROUP_ID,
+                    "Code quality report 执行失败",
+                    "您没有配置接收报告的邮箱，请在Setting -> Tools -> Code Quality Report, 中设置您的邮箱地址。",
+                    NotificationType.WARNING
+            ));
+            return;
+        }
+        send163Email(toEmail, subject, body);
+    }
+
+    public static String generateSubject() {
+        // 获取当前时间
+        Date now = new Date();
+
+        // 格式化时间为所需的字符串格式
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+        // 生成主题
+        String formattedDate = dateFormat.format(now);
+        String subject = formattedDate + " Code Quality Report";
+
+        return subject;
+    }
+
+    public Boolean checkEmailConfig() {
+        PropertiesComponent properties = PropertiesComponent.getInstance();
+        if (properties.getValue(EMAIL_KEY, "").isEmpty()) {
+            Notifications.Bus.notify(new Notification(
+                    Notifications.SYSTEM_MESSAGES_GROUP_ID,
+                    "Code quality report 执行失败",
+                    "您没有配置接收报告的邮箱，请在Setting -> Tools -> Code Quality Report, 中设置您的邮箱地址。",
+                    NotificationType.WARNING
+            ));
+            return false;
+        }
+        return true;
     }
 
     // 计算两个版本内容的差异
@@ -257,53 +306,10 @@ public class CodeQualityReportClass extends AnAction {
 
         } catch (Exception e) {
             e.printStackTrace();
+            throw new RuntimeException("Failed to send email.", e);
         }
     }
 
 
-    public static void sendEmail(String toEmail, String subject, String body) {
-        // 发件人的电子邮件地址和密码
-        final String fromEmail = "your-email@example.com"; // 替换为您的电子邮件地址
-        final String password = "your-email-password"; // 替换为您的电子邮件密码
-
-        // 设置邮件服务器的属性
-        Properties props = new Properties();
-        props.put("mail.smtp.host", "smtp.example.com"); // SMTP 服务器地址，例如 smtp.gmail.com
-        props.put("mail.smtp.port", "587"); // SMTP 服务器端口
-        props.put("mail.smtp.auth", "true");
-        props.put("mail.smtp.starttls.enable", "true"); // 启用 STARTTLS
-
-        // 创建一个会话对象并传递身份验证信息
-        Session session = Session.getInstance(props, new javax.mail.Authenticator() {
-            protected PasswordAuthentication getPasswordAuthentication() {
-                return new PasswordAuthentication(fromEmail, password);
-            }
-        });
-
-        try {
-            // 创建邮件消息对象
-            Message message = new MimeMessage(session);
-
-            // 设置发件人
-            message.setFrom(new InternetAddress(fromEmail));
-
-            // 设置收件人
-            message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(toEmail));
-
-            // 设置邮件主题
-            message.setSubject(subject);
-
-            // 设置邮件内容
-            message.setText(body);
-
-            // 发送邮件
-            Transport.send(message);
-
-            System.out.println("Email sent successfully.");
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
 }
 

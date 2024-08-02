@@ -28,7 +28,7 @@
     <extensions defaultExtensionNs="com.intellij">
         <!-- Register the settings page under Tools -->
         <applicationConfigurable instance="com.xiaohai.plugintest.ReportConfigurable"
-                                 displayName="Report Settings"
+                                 displayName="Code Quality Report"
                                  id="reportSettings"
                                  groupId="tools" />
     </extensions>
