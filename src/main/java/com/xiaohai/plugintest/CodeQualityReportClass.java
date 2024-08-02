@@ -1,6 +1,9 @@
 package com.xiaohai.plugintest;
 
 import cn.hutool.json.JSONObject;
+import com.intellij.notification.Notification;
+import com.intellij.notification.NotificationType;
+import com.intellij.notification.Notifications;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.Project;
@@ -30,6 +33,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 public class CodeQualityReportClass extends AnAction {
@@ -46,6 +50,27 @@ public class CodeQualityReportClass extends AnAction {
         // 获取选中的改动文件
         Collection<Change> allChanges = ChangeListManager.getInstance(project).getAllChanges();
 
+        // 发送通知，提示用户正在处理
+        Notifications.Bus.notify(new Notification(
+                Notifications.SYSTEM_MESSAGES_GROUP_ID,
+                "Code Quality Report",
+                "正在快马加鞭帮您生成报告呢，请稍等几分钟！",
+                NotificationType.INFORMATION
+        ), project);
+
+        // 获取选中的改动文件并异步处理
+        CompletableFuture.runAsync(() -> processAllChangesAsync(allChanges))
+                .exceptionally(ex -> {
+                    ex.printStackTrace();
+                    return null;
+                });
+
+        // 获取选中的改动文件并异步处理
+//        processAllChangesAsync(allChanges);
+    }
+
+    private void processAllChangesAsync(Collection<Change> allChanges) {
+        StringBuilder emailContent = new StringBuilder();
         for (Change change : allChanges) {
             // 获取改动前后的内容
             ContentRevision beforeRevision = change.getBeforeRevision();
@@ -74,10 +99,13 @@ public class CodeQualityReportClass extends AnAction {
 
                     System.out.println("Changes:\n" + changes);
                     // 发送 POST 请求
-                    String answ = sendLLMRequest("abc", filePath, changes);
+                    String Suggest = sendLLMRequest("abc", filePath, changes);
+                    emailContent.append("File: ").append(filePath).append("\n");
+                    emailContent.append("Suggest:\n").append(Suggest).append("\n\n");
                 }
             }
         }
+        System.out.println(emailContent);
     }
 
     // 计算两个版本内容的差异
@@ -159,12 +187,12 @@ public class CodeQualityReportClass extends AnAction {
                 System.out.println(responseBodyString);
                 return responseBodyString;
             } else {
-                System.out.println("Response body is null");
-                return "Response body is null";
+                System.out.println("LLMResponse body is null");
+                return "LLMResponse body is null";
             }
         } catch (IOException e) {
             e.printStackTrace();
-            return "Response body is null";
+            return "LLMResponse body is null";
         }
     }
 
