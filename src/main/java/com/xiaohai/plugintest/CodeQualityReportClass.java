@@ -19,14 +19,10 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
+import org.apache.commons.mail.DefaultAuthenticator;
+import org.apache.commons.mail.HtmlEmail;
 import org.jetbrains.annotations.NotNull;
-//
-//import javax.mail.Message;
-//import javax.mail.PasswordAuthentication;
-//import javax.mail.Session;
-//import javax.mail.Transport;
-//import javax.mail.internet.InternetAddress;
-//import javax.mail.internet.MimeMessage;
+
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
@@ -35,7 +31,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
@@ -60,7 +55,7 @@ public class CodeQualityReportClass extends AnAction {
         if (project == null) return;
 
         // 检查是否配置了邮箱
-//        if (!checkEmailConfig()) return;
+        if (!checkEmailConfig()) return;
 
         // 获取选中的改动文件
         Collection<Change> allChanges = ChangeListManager.getInstance(project).getAllChanges();
@@ -135,10 +130,10 @@ public class CodeQualityReportClass extends AnAction {
             }
         }
         System.out.println(emailContent);
-//        sendEmail(generateSubject(), emailContent.toString());
+        sendEmail(generateSubject(), emailContent.toString());
     }
 
-    public static void sendEmail(String subject, String body) {
+    public void sendEmail(String subject, String body) {
         // 从配置中获取收件人邮箱地址
         PropertiesComponent properties = PropertiesComponent.getInstance();
         String toEmail = properties.getValue(EMAIL_KEY, "");
@@ -271,43 +266,25 @@ public class CodeQualityReportClass extends AnAction {
         }
     }
 
-    /**
-    public static void send163Email(String toEmail, String subject, String body) {
-
-        // 设置邮件服务器的属性
-        Properties props = new Properties();
-        props.put("mail.smtp.host", "smtp.163.com");
-        props.put("mail.smtp.port", "25"); // 注意：163默认端口可能是25，但某些情况下需要使用465或587
-        props.put("mail.smtp.auth", "true");
-        props.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory"); // SSL支持
-        props.put("mail.smtp.socketFactory.fallback", "false");
-        props.put("mail.smtp.socketFactory.port", "465"); // 如果使用SSL，端口应为465
-
-        // 创建一个会话对象并传递身份验证信息
-        Session session = Session.getInstance(props, new javax.mail.Authenticator() {
-            protected PasswordAuthentication getPasswordAuthentication() {
-                return new PasswordAuthentication(fromEmail, appPassword);
-            }
-        });
-
+    public void send163Email(String toEmail, String subject, String body) {
         try {
-            // 创建邮件消息对象
-            Message message = new MimeMessage(session);
+            // 创建一个 HTML 邮件对象
+            HtmlEmail email = new HtmlEmail();
 
-            // 设置发件人
-            message.setFrom(new InternetAddress(fromEmail));
+            // 设置 SMTP 服务器的属性
+            email.setHostName("smtp.163.com");
+            email.setSmtpPort(465); // 使用 SSL，端口为 465
+            email.setAuthenticator(new DefaultAuthenticator(fromEmail, appPassword));
+            email.setSSLOnConnect(true);
 
-            // 设置收件人
-            message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(toEmail));
-
-            // 设置邮件主题
-            message.setSubject(subject);
-
-            // 设置邮件内容
-            message.setText(body);
+            // 设置发件人、收件人、主题和内容
+            email.setFrom(fromEmail);
+            email.addTo(toEmail);
+            email.setSubject(subject);
+            email.setMsg(body);
 
             // 发送邮件
-            Transport.send(message);
+            email.send();
 
             System.out.println("Email sent successfully.");
 
@@ -316,7 +293,5 @@ public class CodeQualityReportClass extends AnAction {
             throw new RuntimeException("Failed to send email.", e);
         }
     }
-
-**/
 }
 

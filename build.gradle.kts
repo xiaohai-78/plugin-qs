@@ -52,9 +52,9 @@ tasks {
 
 dependencies {
     implementation("com.googlecode.java-diff-utils:diffutils:1.3.0")
-//    implementation("com.sun.mail:javax.mail:1.6.2")
     implementation("cn.hutool:hutool-all:5.8.0")
     implementation("com.squareup.okhttp3:okhttp:4.10.0")
+    implementation("org.apache.commons:commons-email:1.5")
 }
 
 java {
