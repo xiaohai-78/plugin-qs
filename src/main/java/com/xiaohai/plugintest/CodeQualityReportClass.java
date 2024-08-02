@@ -38,9 +38,11 @@ import java.util.concurrent.TimeUnit;
 
 public class CodeQualityReportClass extends AnAction {
 
-    private static final String requestUrl = "";
-    private static final String apiKey = "your-api-key";
-
+    private static final String requestUrl = "http://**.com.cn/v1/chat-messages";
+    private static final String apiKey = "***";
+    // 发件人的电子邮件地址和应用密码（授权码）
+    private static final String appPassword = "**"; // 替换为您的应用密码或授权码
+    private static final String fromEmail = "xiao**@163.com";
 
     @Override
     public void actionPerformed(@NotNull AnActionEvent e) {
@@ -214,7 +216,49 @@ public class CodeQualityReportClass extends AnAction {
         }
     }
 
+    public static void send163Email(String toEmail, String subject, String body) {
 
+        // 设置邮件服务器的属性
+        Properties props = new Properties();
+        props.put("mail.smtp.host", "smtp.163.com");
+        props.put("mail.smtp.port", "25"); // 注意：163默认端口可能是25，但某些情况下需要使用465或587
+        props.put("mail.smtp.auth", "true");
+        props.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory"); // SSL支持
+        props.put("mail.smtp.socketFactory.fallback", "false");
+        props.put("mail.smtp.socketFactory.port", "465"); // 如果使用SSL，端口应为465
+
+        // 创建一个会话对象并传递身份验证信息
+        Session session = Session.getInstance(props, new javax.mail.Authenticator() {
+            protected PasswordAuthentication getPasswordAuthentication() {
+                return new PasswordAuthentication(fromEmail, appPassword);
+            }
+        });
+
+        try {
+            // 创建邮件消息对象
+            Message message = new MimeMessage(session);
+
+            // 设置发件人
+            message.setFrom(new InternetAddress(fromEmail));
+
+            // 设置收件人
+            message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(toEmail));
+
+            // 设置邮件主题
+            message.setSubject(subject);
+
+            // 设置邮件内容
+            message.setText(body);
+
+            // 发送邮件
+            Transport.send(message);
+
+            System.out.println("Email sent successfully.");
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
 
     public static void sendEmail(String toEmail, String subject, String body) {
