@@ -27,6 +27,7 @@ import org.commonmark.renderer.html.HtmlRenderer;
 
 import javax.mail.Authenticator;
 import javax.mail.Message;
+import javax.mail.MessagingException;
 import javax.mail.PasswordAuthentication;
 import javax.mail.Session;
 import javax.mail.Transport;
@@ -86,7 +87,7 @@ public class CodeQualityReportClass extends AnAction {
                     Notifications.Bus.notify(new Notification(
                             Notifications.SYSTEM_MESSAGES_GROUP_ID,
                             "Code Quality Report",
-                            "报告异步后台生成执行完成",
+                            "报告异步后台执行完成",
                             NotificationType.INFORMATION
                     ), project);
                 })
@@ -143,7 +144,7 @@ public class CodeQualityReportClass extends AnAction {
         sendEmail(generateSubject(), emailContent.toString());
     }
 
-    public void sendEmail(String subject, String body) {
+    public void sendEmail(String subject, String body){
         // 从配置中获取收件人邮箱地址
         PropertiesComponent properties = PropertiesComponent.getInstance();
         String toEmail = properties.getValue(EMAIL_KEY, "");
@@ -291,7 +292,7 @@ public class CodeQualityReportClass extends AnAction {
         }
     }
 
-    public void send163HTLMEmail(String toEmail, String subject, String body) {
+    public void send163HTLMEmail(String toEmail, String subject, String body) throws MessagingException {
         // 163 邮箱 SMTP 配置信息
         String host = "smtp.163.com";
 
@@ -329,6 +330,7 @@ public class CodeQualityReportClass extends AnAction {
             System.out.println("邮件发送成功！");
         } catch (Exception e) {
             e.printStackTrace();
+            throw e;
         }
     }
 
