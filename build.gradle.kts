@@ -69,6 +69,7 @@ dependencies {
     implementation("jakarta.mail:jakarta.mail-api:2.1.0")
     implementation("javax.mail:mail:1.4.7")
     implementation("org.apache.commons:commons-email:1.5")
+    implementation("org.commonmark:commonmark:0.18.0")
 }
 
 java {

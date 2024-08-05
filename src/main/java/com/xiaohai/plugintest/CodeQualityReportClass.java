@@ -21,6 +21,9 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
 import org.jetbrains.annotations.NotNull;
+import org.commonmark.parser.Parser;
+import org.commonmark.node.Node;
+import org.commonmark.renderer.html.HtmlRenderer;
 
 import javax.mail.Authenticator;
 import javax.mail.Message;
@@ -98,7 +101,6 @@ public class CodeQualityReportClass extends AnAction {
                     ), project);
                     return null;
                 });
-//        send163HTLMEmail("854262144@qq.com", "测试报告", "测试报告内容");
     }
 
     private void processAllChangesAsync(Collection<Change> allChanges) {
@@ -155,8 +157,7 @@ public class CodeQualityReportClass extends AnAction {
             return;
         }
         try {
-            send163Email(toEmail, subject, body);
-//            send163HTLMEmail(toEmail, subject, body);
+            send163HTLMEmail(toEmail, subject, body);
         }catch (Exception e){
             Notifications.Bus.notify(new Notification(
                     Notifications.SYSTEM_MESSAGES_GROUP_ID,
@@ -290,10 +291,11 @@ public class CodeQualityReportClass extends AnAction {
         }
     }
 
-    public void send163Email(String toEmail, String subject, String body) {
+    public void send163HTLMEmail(String toEmail, String subject, String body) {
         // 163 邮箱 SMTP 配置信息
         String host = "smtp.163.com";
 
+        String htmlStr = convertMarkdownToHtml(body);
         // 创建一个 Properties 对象，用于设置 SMTP 服务器信息
         Properties props = new Properties();
         props.put("mail.smtp.host", host);
@@ -320,7 +322,7 @@ public class CodeQualityReportClass extends AnAction {
             // 设置邮件主题
             message.setSubject(subject);
             // 设置邮件内容
-            message.setText(body);
+            message.setContent(htmlStr, "text/html; charset=UTF-8");
 
             // 发送邮件
             Transport.send(message);
@@ -330,83 +332,18 @@ public class CodeQualityReportClass extends AnAction {
         }
     }
 
-    public void send163HTLMEmail(String toEmail, String subject, String body) {
-        // 163 邮箱 SMTP 配置信息
-        String host = "smtp.163.com";
-        String htmlContent = """
-        <!DOCTYPE html>
-        <html lang="en">
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Markdown to HTML Example</title>
-            <style>
-                body {
-                    font-family: Arial, sans-serif;
-                    line-height: 1.6;
-                    padding: 20px;
-                    background-color: #f4f4f4;
-                }
-                h1 {
-                    color: #333;
-                }
-                a {
-                    color: #1a73e8;
-                    text-decoration: none;
-                }
-                a:hover {
-                    text-decoration: underline;
-                }
-                ul {
-                    margin: 0;
-                    padding: 0;
-                    list-style-type: disc;
-                }
-                li {
-                    margin: 5px 0;
-                }
-            </style>
-        </head>
-        <body>
-            """ + body + """
-        </body>
-        </html>
-        """;
-        // 创建一个 Properties 对象，用于设置 SMTP 服务器信息
-        Properties props = new Properties();
-        props.put("mail.smtp.host", host);
-        props.put("mail.smtp.auth", "true");
+    public static String convertMarkdownToHtml(String markdownText) {
+        // 创建Markdown解析器
+        Parser parser = Parser.builder().build();
+        // 解析Markdown文本
+        Node document = parser.parse(markdownText);
 
-        // 创建一个 Authenticator 对象，用于进行 SMTP 用户名和密码认证
-        Authenticator authenticator = new Authenticator() {
-            @Override
-            protected PasswordAuthentication getPasswordAuthentication() {
-                return new PasswordAuthentication(fromEmail, appPassword);
-            }
-        };
+        // 创建HTML渲染器
+        HtmlRenderer renderer = HtmlRenderer.builder().build();
+        // 将Markdown文档渲染为HTML
+        String html = renderer.render(document);
 
-        // 创建一个 Session 对象，用于与 SMTP 服务器进行通信
-        Session session = Session.getDefaultInstance(props, authenticator);
-
-        try {
-            // 创建一个 MimeMessage 对象
-            MimeMessage message = new MimeMessage(session);
-            // 设置发件人地址
-            message.setFrom(new InternetAddress(fromEmail));
-            // 设置收件人地址
-            message.setRecipient(Message.RecipientType.TO, new InternetAddress(toEmail));
-            // 设置邮件主题
-            message.setSubject(subject);
-            // 设置邮件内容
-//            message.setText(body);
-            message.setContent(htmlContent, "text/html; charset=UTF-8");
-
-            // 发送邮件
-            Transport.send(message);
-            System.out.println("邮件发送成功！");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        return html;
     }
 
 }
