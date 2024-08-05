@@ -1,7 +1,7 @@
 plugins {
     id("java")
     id("org.jetbrains.kotlin.jvm") version "1.9.0"
-    id("org.jetbrains.intellij") version "1.15.0"
+    id("org.jetbrains.intellij") version "1.17.2"
     id("com.github.johnrengelman.shadow") version "8.1.1"
 }
 
@@ -30,6 +30,7 @@ tasks {
     withType<JavaCompile> {
         sourceCompatibility = "17"
         targetCompatibility = "17"
+        options.encoding = "UTF-8"
     }
     withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
         kotlinOptions.jvmTarget = "17"
@@ -37,7 +38,7 @@ tasks {
 
     patchPluginXml {
         sinceBuild.set("222")
-        untilBuild.set("232.*")
+        untilBuild.set("241.*")
     }
 
     signPlugin {
@@ -70,6 +71,7 @@ dependencies {
     implementation("javax.mail:mail:1.4.7")
     implementation("org.apache.commons:commons-email:1.5")
     implementation("org.commonmark:commonmark:0.18.0")
+    implementation("net.minidev:json-smart:2.5.0")
 }
 
 java {
