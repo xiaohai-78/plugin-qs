@@ -15,7 +15,7 @@
          Guidelines: https://plugins.jetbrains.com/docs/marketplace/plugin-overview-page.html#plugin-description -->
     <description>
         <![CDATA[
-        <p>欢迎使用<b>Code Quality Report</b>插件，这是一个强大的工具，旨在提升您的开发效率和代码质量。</p>
+        <p>欢迎使用<b>Code Quality Report</b>插件，这是一个强大的工具，使用大模型分析您每次Commit时的代码质量并生成报告并发送到您的邮箱，旨在提升您的开发效率和代码质量。</p>
 
         <p>主要功能：</p>
         <ul>
@@ -24,7 +24,7 @@
             <li><b>无缝集成：</b> 与IntelliJ IDEA完美集成，确保在开发环境中的顺畅体验。</li>
         </ul>
 
-        <p>开始使用<b>Code Quality Report</b>插件，体验全新的开发效率和代码质量管理。有关更多信息和使用说明，请参阅<a href="https://www.plugin-test.com/docs">文档</a>。</p>
+        <p>开始使用<b>Code Quality Report</b>插件，体验全新的开发效率和代码质量管理。有关更多信息和使用说明，请参阅<a href="https://baidu.com/docs">文档</a>。</p>
     ]]>
     </description>
 
