@@ -43,8 +43,8 @@
                                  groupId="tools" />
     </extensions>
     <actions>
-        <action id="CodeQualityReport" class="com.xiaohai.plugintest.CodeQualityReportClass" text="CodeQualityReport"
-                description="CodeQualityReport">
+        <action id="CodeQualityReport" class="com.xiaohai.plugintest.CodeQualityReportClass" text="Code Quality Report"
+                description="Code Quality Report">
             <add-to-group group-id="Vcs.MessageActionGroup" anchor="first"/>
         </action>
     </actions>
